@@ -1,5 +1,0 @@
-com\example\studentregistration\model\Aluno.class
-com\example\studentregistration\service\AlunoService.class
-com\example\studentregistration\StudentRegistrationApplication.class
-com\example\studentregistration\repository\AlunoRepository.class
-com\example\studentregistration\controller\AlunoController.class
