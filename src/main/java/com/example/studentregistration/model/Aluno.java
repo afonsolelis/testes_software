@@ -15,6 +15,15 @@ public class Aluno {
     private int idade;
     private String email;
 
+    public Aluno(String nome, int idade, String email) {
+        this.nome = nome;
+        this.idade = idade;
+        this.email = email;
+    }
+
+    public Aluno() {
+    }
+
     // Getters and Setters
     public Long getId() {
         return id;

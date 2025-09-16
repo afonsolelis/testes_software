@@ -1,0 +1,3 @@
+com\example\studentregistration\model\AlunoTest.class
+com\example\studentregistration\repository\AlunoRepositoryTest.class
+com\example\studentregistration\service\AlunoServiceTest.class
