@@ -15,9 +15,7 @@ public class AlunoService {
     private AlunoRepository alunoRepository;
 
     public Aluno createAluno(Aluno aluno) {
-        if (aluno.getEmail() == null || !aluno.getEmail().toLowerCase().contains("@senac")) {
-            throw new IllegalArgumentException("Email inválido. O email deve conter '@senac'.");
-        }
+        validateEmail(aluno.getEmail());
         return alunoRepository.save(aluno);
     }
 
@@ -37,14 +35,29 @@ public class AlunoService {
             throw new IllegalArgumentException("O novo e-mail deve ser diferente do e-mail atual.");
         }
 
-        if (alunoDetails.getEmail() == null || !alunoDetails.getEmail().toLowerCase().contains("@senac")) {
-            throw new IllegalArgumentException("Email inválido. O email deve conter '@senac'.");
-        }
+        validateEmail(alunoDetails.getEmail());
 
         aluno.setNome(alunoDetails.getNome());
         aluno.setIdade(alunoDetails.getIdade());
         aluno.setEmail(alunoDetails.getEmail());
 
         return alunoRepository.save(aluno);
+    }
+
+    public void deleteAluno(Long id) {
+        Optional<Aluno> optionalAluno = alunoRepository.findById(id);
+        if (!optionalAluno.isPresent()) {
+            throw new IllegalArgumentException("Aluno não encontrado.");
+        }
+        alunoRepository.deleteById(id);
+    }
+
+    private void validateEmail(String email) {
+        if (email == null || email.trim().isEmpty()) {
+            throw new IllegalArgumentException("Email não pode ser vazio.");
+        }
+        if (!email.toLowerCase().contains("@senac")) {
+            throw new IllegalArgumentException("Email inválido. O email deve conter '@senac'.");
+        }
     }
 }

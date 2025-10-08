@@ -50,3 +50,42 @@ Invoke-RestMethod -Uri "http://localhost:8080/api/v1/alunos" -Method POST -Conte
 ```powershell
 Invoke-RestMethod -Uri "http://localhost:8080/api/v1/alunos" -Method GET
 ```
+
+#### Update a student:
+```powershell
+Invoke-RestMethod -Uri "http://localhost:8080/api/v1/alunos/1" -Method PUT -ContentType "application/json" -Body '{"nome":"Fulano Atualizado", "idade":26, "email":"fulano.atualizado@senac.com"}'
+```
+
+#### Delete a student:
+```powershell
+Invoke-RestMethod -Uri "http://localhost:8080/api/v1/alunos/1" -Method DELETE
+```
+
+## Running Tests
+
+### Run all tests:
+```bash
+mvn test
+```
+
+### Run integration tests with Testcontainers:
+```bash
+mvn test -Dtest=AlunoIntegrationTest
+```
+
+### Run tests with detailed output:
+```bash
+mvn test -Dtest=AlunoIntegrationTest -X
+```
+
+## Testcontainers Integration
+
+This project includes integration tests using Testcontainers for realistic database testing. See `20251014.md` for detailed documentation about the Testcontainers implementation.
+
+### Test Features:
+- ✅ Real PostgreSQL database in Docker containers
+- ✅ Complete CRUD operation tests
+- ✅ Email validation tests
+- ✅ Error handling tests
+- ✅ Ordered test execution
+- ✅ Automatic container cleanup
