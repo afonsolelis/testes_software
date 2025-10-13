@@ -18,9 +18,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Testcontainers
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-@TestPropertySource(properties = {
+@org.springframework.test.context.TestPropertySource(properties = {
     "spring.jpa.hibernate.ddl-auto=create-drop",
-    "spring.jpa.show-sql=true"
+    "spring.jpa.show-sql=true",
+    "spring.datasource.driver-class-name=org.postgresql.Driver"
 })
 class AlunoIntegrationTest {
 
@@ -152,7 +153,7 @@ class AlunoIntegrationTest {
         // When
         ResponseEntity<String> response = restTemplate.exchange(
             getBaseUrl() + "/alunos/1", HttpMethod.DELETE, 
-            new HttpEntity<>(new Object()), String.class);
+            new HttpEntity<>(null), String.class);
         
         // Then
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -165,7 +166,7 @@ class AlunoIntegrationTest {
         // When
         ResponseEntity<String> response = restTemplate.exchange(
             getBaseUrl() + "/alunos/999", HttpMethod.DELETE, 
-            new HttpEntity<>(new Object()), String.class);
+            new HttpEntity<>(null), String.class);
         
         // Then
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
@@ -175,11 +176,10 @@ class AlunoIntegrationTest {
     @Test
     @Order(9)
     void testGetAllAlunosAfterDeletion() {
-        // When
+        // After deleting aluno with ID 1, we should have 0 alunos
         ResponseEntity<Aluno[]> response = restTemplate.getForEntity(
             getBaseUrl() + "/alunos", Aluno[].class);
         
-        // Then
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).hasSize(0);
     }
@@ -190,21 +190,25 @@ class AlunoIntegrationTest {
         // Given
         Aluno aluno1 = new Aluno("Ana Silva", 23, "ana@senac.com");
         Aluno aluno2 = new Aluno("Carlos Santos", 28, "carlos@senac.com");
+        Aluno aluno3 = new Aluno("Pedro Costa", 30, "pedro@senac.com");
         
         // When
         ResponseEntity<Aluno> response1 = restTemplate.postForEntity(
             getBaseUrl() + "/alunos", aluno1, Aluno.class);
         ResponseEntity<Aluno> response2 = restTemplate.postForEntity(
             getBaseUrl() + "/alunos", aluno2, Aluno.class);
+        ResponseEntity<Aluno> response3 = restTemplate.postForEntity(
+            getBaseUrl() + "/alunos", aluno3, Aluno.class);
         
         // Then
         assertThat(response1.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response2.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response3.getStatusCode()).isEqualTo(HttpStatus.OK);
         
-        // Verify both students were created
+        // Verify three students were created
         ResponseEntity<Aluno[]> allResponse = restTemplate.getForEntity(
             getBaseUrl() + "/alunos", Aluno[].class);
         assertThat(allResponse.getBody()).isNotNull();
-        assertThat(allResponse.getBody()).hasSize(2);
+        assertThat(allResponse.getBody()).hasSize(3);
     }
 }

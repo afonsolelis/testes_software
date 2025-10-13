@@ -86,7 +86,7 @@ class AlunoControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().string("Email inválido. O email deve conter '@senac'."));
+                .andExpect(content().string("Email não pode ser vazio."));
     }
 
     @Test
@@ -98,6 +98,6 @@ class AlunoControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().string("Email inválido. O email deve conter '@senac'."));
+                .andExpect(content().string("Email não pode ser vazio."));
     }
 }
