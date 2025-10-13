@@ -1,6 +1,6 @@
 # Changelog
 
-Data: 2025-10-14
+Data: 2025-10-13
 
 ## Resumo
 
