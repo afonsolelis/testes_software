@@ -190,3 +190,91 @@ curl -X DELETE http://localhost:8080/api/v1/alunos/1
 ```powershell
 Invoke-RestMethod -Uri "http://localhost:8080/api/v1/alunos/1" -Method DELETE
 ```
+
+## Consultar endereço por CEP
+
+Consulta informações de endereço usando o serviço ViaCEP.
+
+**URL:** `/api/v1/cep/{cep}`
+
+**Método:** `GET`
+
+**Parâmetros da URL:**
+- `cep` (String): CEP para consulta (com ou sem máscara)
+
+**Resposta de Sucesso (200 OK):**
+
+```json
+{
+  "cep": "01001-000",
+  "logradouro": "Praça da Sé",
+  "complemento": "lado ímpar",
+  "bairro": "Sé",
+  "localidade": "São Paulo",
+  "uf": "SP",
+  "ibge": "3550308",
+  "gia": "1066",
+  "ddd": "11",
+  "siafi": "7107"
+}
+```
+
+**Resposta de Erro (404 Not Found):**
+
+Se o CEP não for encontrado.
+
+**Exemplo de comando `curl`:**
+
+```bash
+curl -X GET http://localhost:8080/api/v1/cep/01001000
+```
+
+**Exemplo de comando `PowerShell`:**
+
+```powershell
+Invoke-RestMethod -Uri "http://localhost:8080/api/v1/cep/01001000" -Method GET
+```
+
+## Consultar endereço por CEP com VCR
+
+Consulta informações de endereço usando o serviço ViaCEP com funcionalidade VCR (Video Cassette Recorder) para demonstrar testes de API.
+
+**URL:** `/api/v1/vcr/cep/{cep}`
+
+**Método:** `GET`
+
+**Parâmetros da URL:**
+- `cep` (String): CEP para consulta (com ou sem máscara)
+
+**Parâmetros de Query:**
+- `recordMode` (boolean): Se true, grava a interação; se false, reproduz a interação gravada
+- `cassette` (string): Nome do cassette para gravar/reproduzir (padrão: 'viacep_default')
+
+**Resposta de Sucesso (200 OK):**
+
+```json
+{
+  "cep": "01001-000",
+  "logradouro": "Praça da Sé",
+  "complemento": "lado ímpar",
+  "bairro": "Sé",
+  "localidade": "São Paulo",
+  "uf": "SP",
+  "ibge": "3550308",
+  "gia": "1066",
+  "ddd": "11",
+  "siafi": "7107"
+}
+```
+
+**Exemplo de comando `curl` (gravação):**
+
+```bash
+curl -X GET "http://localhost:8080/api/v1/vcr/cep/01001000?recordMode=true&cassette=saopaulo_center"
+```
+
+**Exemplo de comando `PowerShell` (reprodução):**
+
+```powershell
+Invoke-RestMethod -Uri "http://localhost:8080/api/v1/vcr/cep/01001000?recordMode=false&cassette=saopaulo_center" -Method GET
+```

@@ -89,3 +89,30 @@ This project includes integration tests using Testcontainers for realistic datab
 - ✅ Error handling tests
 - ✅ Ordered test execution
 - ✅ Automatic container cleanup
+
+## VCR (Video Cassette Recorder) for API Testing
+
+This project implements a VCR (Video Cassette Recorder) functionality to record and replay HTTP interactions. This is especially useful for teaching API testing concepts to students.
+
+### How VCR Works
+- **Record Mode**: Makes real HTTP requests to external APIs and saves the interactions to cassette files
+- **Playback Mode**: Returns recorded responses without making actual HTTP requests
+- **Educational Value**: Students can see real API interactions and understand how HTTP requests/responses work
+
+### VCR Features:
+- Records interactions with external APIs (e.g., ViaCEP API for address lookup)
+- Saves interactions to JSON cassette files in `src/test/resources/vcr_cassettes/`
+- Supports both recording and playback modes
+- Provides a clear demonstration of HTTP interactions for learning purposes
+
+### API Endpoint for VCR
+```
+GET /api/v1/vcr/cep/{cep}?recordMode={boolean}&cassette={cassetteName}
+```
+
+### Example Usage:
+- Record: `GET /api/v1/vcr/cep/01001000?recordMode=true&cassette=saopaulo_center`
+- Playback: `GET /api/v1/vcr/cep/01001000?recordMode=false&cassette=saopaulo_center`
+
+### Additional API Endpoints
+- `GET /api/v1/cep/{cep}` - Direct lookup on ViaCEP API without VCR
