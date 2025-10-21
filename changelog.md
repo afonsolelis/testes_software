@@ -5,9 +5,36 @@ Data: 2025-10-13
 ## Resumo
 
 - **Implementação completa de Testcontainers** para testes de integração com PostgreSQL real em containers Docker.
+- **Instalação do VCR educativo para ViaCEP** permitindo gravar e reproduzir interações HTTP em “cassetes” reutilizáveis.
+- **Guia de instalação do Apache Maven no PowerShell** com Java 21 e instalação via Scoop para ambientes Windows.
 - **Substituição de H2 por PostgreSQL** nos testes, garantindo ambiente idêntico à produção.
 - **Cobertura completa de testes CRUD** com 10 cenários ordenados cobrindo todos os endpoints da API.
 - **Documentação técnica detalhada** sobre Testcontainers e suas vantagens.
+
+## Guia Rápido: Instalação do Maven com Scoop (Windows)
+
+1. **Validar pré-requisitos**
+   ```powershell
+   java -version
+   echo $env:JAVA_HOME
+   ```
+2. **Permitir execução de scripts no PowerShell**
+   ```powershell
+   Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
+   ```
+3. **Instalar o Scoop**
+   ```powershell
+   irm get.scoop.sh | iex
+   ```
+4. **(Opcional) Garantir que o bucket principal esteja disponível**
+   ```powershell
+   scoop bucket add main
+   ```
+5. **Instalar o Apache Maven e validar**
+   ```powershell
+   scoop install maven
+   mvn -v
+   ```
 
 ## Mudanças
 
@@ -34,6 +61,12 @@ Data: 2025-10-13
     - `testGetAllAlunosAfterDeletion()` - Verificação após exclusão
     - `testCreateMultipleAlunos()` - Criação de múltiplos alunos
 
+### VCR para Testes de API
+- **Criado**: pacote `com.example.studentregistration.vcr` com `VCRService`, `VCRInterceptor`, `VCRViaCEPService` e `VCRController` para orquestrar gravação e reprodução de interações HTTP.
+- **Endpoint educativo**: `GET /api/v1/vcr/cep/{cep}?recordMode={boolean}&cassette={nome}` que grava chamadas reais ao ViaCEP quando `recordMode=true` e reproduz respostas salvas quando `recordMode=false`.
+- **Armazenamento dos cassetes**: interações persistidas em JSON no diretório `src/test/resources/vcr_cassettes/`, permitindo reuso determinístico nos testes.
+- **Testes automatizados**: `src/test/java/com/example/studentregistration/vcr/VCRViaCEPServiceTest.java` garante o fluxo completo de gravação e reprodução.
+
 ### Configuração de Teste
 - **Criado**: `src/test/resources/application-test.properties`
   - Configuração específica para Testcontainers
@@ -46,6 +79,8 @@ Data: 2025-10-13
   - Exemplos de código para todos os cenários
   - Instruções de execução e configuração
   - Referências técnicas
+- **Criado**: `vcr_teaching_guide.md` com guia prático sobre instalação, gravação, reprodução e localização dos cassetes VCR.
+- **Adicionado**: guia “Instalação do Apache Maven no PowerShell (Windows)” detalhando pré-requisitos com Java 21, configuração do `JAVA_HOME` e instalação do Maven via Scoop (`Set-ExecutionPolicy`, `irm get.scoop.sh | iex`, `scoop install maven`, `mvn -v`).
 
 ### Controller Aprimorado
 - **Adicionados endpoints**:
