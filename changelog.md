@@ -1,5 +1,381 @@
 # Changelog
 
+## Branch: 20251027-gerkhin
+
+Data: 2025-10-27
+
+### O que é Gherkin?
+
+**Gherkin** é uma linguagem de especificação de comportamento legível por humanos, criada para facilitar a comunicação entre stakeholders técnicos e não-técnicos em projetos de software. Utiliza palavras-chave estruturadas em linguagem natural (como `Given`, `When`, `Then`) para descrever o comportamento esperado de um sistema.
+
+#### Por que Gherkin é importante para BDD?
+
+**Behavior-Driven Development (BDD)** é uma metodologia ágil que enfatiza a colaboração entre desenvolvedores, testadores e stakeholders de negócio. Gherkin é a linguagem padrão para BDD porque:
+
+- **Comunicação Clara**: Permite que todos entendam os requisitos sem conhecimento técnico
+- **Documentação Viva**: Os cenários Gherkin servem como documentação executável e sempre atualizada
+- **Testes Automatizados**: Os cenários podem ser transformados em testes automatizados através de frameworks como Cucumber
+- **Foco no Comportamento**: Descreve "o quê" o sistema deve fazer, não "como" ele faz
+- **Colaboração**: Facilita discussões entre equipes multidisciplinares usando uma linguagem comum
+- **Especificação por Exemplo**: Usa exemplos concretos para esclarecer requisitos ambíguos
+
+#### Estrutura do Gherkin
+
+```gherkin
+Feature: Título da funcionalidade
+  Como um [papel]
+  Eu quero [funcionalidade]
+  Para que [benefício]
+
+  Scenario: Descrição do cenário
+    Given [pré-condição]
+    When [ação]
+    Then [resultado esperado]
+    And [resultado adicional]
+```
+
+#### Padrão AAA (Arrange-Act-Assert) em Testes
+
+O **padrão AAA** é uma estrutura universalmente reconhecida para organizar testes unitários e de integração, tornando-os mais legíveis e mantendáveis. Gherkin naturalmente implementa este padrão:
+
+##### **Arrange (Preparar)** - `Given`
+- Configura o contexto inicial do teste
+- Prepara dados, mocks, e estado do sistema
+- Define pré-condições necessárias
+
+```gherkin
+Given I have a student with the following details:
+  | name  | João Silva          |
+  | email | joao.silva@senac.br |
+  | age   | 20                  |
+And the email contains the required "@senac" domain
+```
+
+##### **Act (Agir)** - `When`
+- Executa a ação principal do teste
+- Invoca o método/endpoint sob teste
+- É onde o comportamento é exercitado
+
+```gherkin
+When I submit the student registration form to the API endpoint "/api/v1/alunos"
+```
+
+##### **Assert (Verificar)** - `Then` / `And`
+- Verifica os resultados esperados
+- Valida estado final, retornos e efeitos colaterais
+- Confirma que o comportamento está correto
+
+```gherkin
+Then the registration should be successful with HTTP status code 201
+And the system should return the registered student information
+And the response should contain a generated student ID
+And the response should include the student name "João Silva"
+```
+
+##### Mapeamento Gherkin ↔ AAA
+
+| Gherkin | AAA | Propósito | Exemplo |
+|---------|-----|----------|----------|
+| `Given` | **Arrange** | Preparar contexto | Criar dados de teste |
+| `And` (após Given) | **Arrange** | Condições adicionais | Configurar estado |
+| `When` | **Act** | Executar ação | Chamar API/método |
+| `Then` | **Assert** | Verificar resultado | Validar status 201 |
+| `And` (após Then) | **Assert** | Verificações adicionais | Validar campos retornados |
+
+##### Benefícios do Padrão AAA
+
+1. **Legibilidade**: Estrutura clara e previsível
+2. **Manutenção**: Fácil identificar o que cada parte faz
+3. **Debug**: Problemas são rapidamente localizados
+4. **Padronização**: Todos os testes seguem a mesma estrutura
+5. **Documentação**: Testes servem como exemplos de uso
+
+##### Exemplo Completo: AAA em Gherkin vs Java
+
+**Gherkin (BDD)**:
+```gherkin
+# ARRANGE: Preparar dados do estudante
+Given I have a student with email "joao@senac.br"
+And the database is empty
+
+# ACT: Executar registro
+When I submit the student registration form
+
+# ASSERT: Verificar resultado
+Then the registration should be successful
+And the student should exist in the database
+```
+
+**Java (TDD)**:
+```java
+@Test
+void testStudentRegistration() {
+    // ARRANGE: Preparar
+    Aluno aluno = new Aluno("João", "joao@senac.br", 20);
+    repository.deleteAll();
+    
+    // ACT: Agir
+    ResponseEntity<Aluno> response = controller.createAluno(aluno);
+    
+    // ASSERT: Verificar
+    assertEquals(HttpStatus.CREATED, response.getStatusCode());
+    assertTrue(repository.existsByEmail("joao@senac.br"));
+}
+```
+
+##### Antipadrões a Evitar
+
+❌ **Múltiplos Acts**:
+```gherkin
+When I submit the registration form
+And I submit another registration form  # Evite!
+```
+✅ **Solução**: Criar cenários separados para cada ação principal.
+
+❌ **Assert no Arrange**:
+```gherkin
+Given the system has 5 students  # OK
+And the student count should be 5  # Evite verificar aqui!
+```
+✅ **Solução**: Verificar apenas no `Then`.
+
+❌ **Lógica no Assert**:
+```gherkin
+Then the registration should succeed or fail based on email  # Vago!
+```
+✅ **Solução**: Ser explícito sobre o resultado esperado.
+
+### Mudanças Principais
+
+#### 1. Implementação de Testes BDD com Cucumber + Gherkin
+
+**Adicionado**: `src/test/resources/features/studentRegistration.feature`
+- Feature de registro de estudantes escrita em Gherkin com padrão AAA
+- **6 cenários de teste abrangentes**:
+  - ✅ Registro bem-sucedido com email institucional válido
+  - ❌ Rejeição quando email não contém domínio institucional
+  - ❌ Rejeição quando campo email está vazio
+  - ❌ Rejeição quando campo nome está vazio
+  - ✅ Registro com idade mínima válida
+  - ❌ Rejeição quando idade é negativa
+- **Background** comum para todos os cenários
+- **Data tables** para estruturar dados de entrada
+- **Comentários AAA** explicando cada fase do teste
+- **Asserções granulares** verificando cada aspecto da resposta
+- **HTTP status codes explícitos** (201, 400)
+- **Mensagens de erro específicas** para cada tipo de falha
+- **Validação de estado** (verificação de persistência)
+- Especificações legíveis por stakeholders não-técnicos
+- Documentação executável do comportamento esperado
+
+**Adicionado**: `src/test/java/com/example/studentregistration/stepdefinitions/StudentRegistrationStepDefinitions.java`
+- Implementação dos steps do Gherkin em Java
+- Binding entre cenários Gherkin e código de teste
+- Integração com Spring Boot Test e MockMvc
+- Validações de resposta HTTP e mensagens de erro
+
+**Adicionado**: `src/test/java/com/example/studentregistration/cucumber/StudentRegistrationTestRunner.java`
+- Runner do Cucumber com JUnit
+- Configuração de features e glue packages
+- Geração de relatórios de teste
+
+#### 2. Dependências Cucumber (pom.xml)
+
+```xml
+<!-- Cucumber para BDD -->
+<dependency>
+    <groupId>io.cucumber</groupId>
+    <artifactId>cucumber-java</artifactId>
+    <version>7.14.0</version>
+    <scope>test</scope>
+</dependency>
+<dependency>
+    <groupId>io.cucumber</groupId>
+    <artifactId>cucumber-junit</artifactId>
+    <version>7.14.0</version>
+    <scope>test</scope>
+</dependency>
+<dependency>
+    <groupId>io.cucumber</groupId>
+    <artifactId>cucumber-spring</artifactId>
+    <version>7.14.0</version>
+    <scope>test</scope>
+</dependency>
+```
+
+#### 3. Funcionalidade VCR para Testes de API
+
+**Objetivo Educacional**: Demonstrar como gravar e reproduzir requisições HTTP para testes determinísticos de APIs externas.
+
+**Arquivos criados**:
+- `src/main/java/com/example/studentregistration/vcr/*.java` - Classes VCR
+- `src/test/java/com/example/studentregistration/vcr/VCRViaCEPServiceTest.java` - Testes usando VCR
+- `src/test/resources/vcr_cassettes/viacep_test.json` - Cassette com interações gravadas
+- `vcr_teaching_guide.md` - Guia educacional sobre VCR
+
+**VCR (Video Cassette Recorder) Pattern**:
+- Grava requisições HTTP reais em arquivos JSON ("cassettes")
+- Reproduz as respostas gravadas em execuções futuras
+- Elimina dependência de APIs externas durante testes
+- Testes mais rápidos e determinísticos
+
+#### 4. Melhorias em Testes Existentes
+
+**Atualizado**: `src/test/java/com/example/studentregistration/service/AlunoServiceTest.java`
+- Testes parametrizados aprimorados
+- Cobertura de casos de equivalência
+
+**Adicionado**: `src/test/java/com/example/studentregistration/controller/AlunoControllerTest.java`
+- Testes unitários do controller com MockMvc
+- Validação de endpoints REST
+
+**Adicionado**: `src/test/java/com/example/studentregistration/service/ViaCEPServiceTest.java`
+- Testes do serviço de integração com ViaCEP
+
+#### 5. Nova Funcionalidade: Integração com ViaCEP
+
+**Adicionado**: `src/main/java/com/example/studentregistration/service/ViaCEPService.java`
+- Serviço para consultar CEP via API ViaCEP
+- Exemplo de integração com API externa
+
+**Adicionado**: `src/main/java/com/example/studentregistration/controller/CepController.java`
+- Endpoint REST para consulta de CEP
+
+**Adicionado**: `src/main/java/com/example/studentregistration/model/ViaCEPResponse.java`
+- Modelo de resposta da API ViaCEP
+
+### Vantagens da Abordagem BDD com Gherkin
+
+#### 1. **Three Amigos Collaboration**
+Gherkin facilita a colaboração entre:
+- **Business**: Define requisitos em linguagem natural
+- **Development**: Implementa funcionalidades baseadas em cenários claros
+- **Testing**: Automatiza testes a partir das especificações
+
+#### 2. **Living Documentation**
+```gherkin
+# Este cenário é executável E serve como documentação
+Scenario: Successfully register a new student
+  Given I have student details with valid information
+  When I submit the student registration form
+  Then the student should be successfully registered
+```
+- Documentação sempre sincronizada com o código
+- Testes que documentam e documentação que testa
+
+#### 3. **Descoberta de Requisitos**
+Gherkin expõe ambiguidades:
+```gherkin
+# Pergunta: O que é um email válido?
+Given I have student details with email not containing "@senac"
+# Resposta clara: Email deve conter "@senac"
+```
+
+#### 4. **Regressão e Manutenção**
+- Cenários Gherkin são mais estáveis que testes unitários
+- Mudanças na implementação não quebram os cenários
+- Foco no comportamento, não na implementação
+
+### BDD vs TDD vs Traditional Testing
+
+| Aspecto | Traditional | TDD | BDD |
+|---------|------------|-----|-----|
+| **Foco** | Validar código | Código limpo | Comportamento |
+| **Linguagem** | Técnica | Técnica | Natural |
+| **Colaboração** | Baixa | Média | Alta |
+| **Documentação** | Separada | Código | Executável |
+| **Exemplo** | Assert equals | Test first | Given/When/Then |
+
+### Como Executar os Testes BDD
+
+#### Executar todos os testes Cucumber:
+```bash
+mvn test -Dtest=StudentRegistrationTestRunner
+```
+
+#### Executar feature específica:
+```bash
+mvn test -Dcucumber.features=src/test/resources/features/studentRegistration.feature
+```
+
+#### Ver relatório Cucumber:
+```bash
+# Relatórios gerados em target/cucumber-reports/
+open target/cucumber-reports/index.html
+```
+
+### Estrutura de Arquivos de Teste
+
+```
+src/test/
+├── java/
+│   └── com/example/studentregistration/
+│       ├── cucumber/
+│       │   └── StudentRegistrationTestRunner.java  # Runner JUnit + Cucumber
+│       ├── stepdefinitions/
+│       │   └── StudentRegistrationStepDefinitions.java  # Steps Gherkin → Java
+│       ├── controller/
+│       │   └── AlunoControllerTest.java  # Testes unitários REST
+│       ├── service/
+│       │   ├── AlunoServiceTest.java  # Testes parametrizados
+│       │   └── ViaCEPServiceTest.java  # Testes de integração API
+│       └── vcr/
+│           └── VCRViaCEPServiceTest.java  # Testes com VCR
+└── resources/
+    ├── features/
+    │   └── studentRegistration.feature  # Cenários Gherkin
+    ├── vcr_cassettes/
+    │   └── viacep_test.json  # Interações HTTP gravadas
+    └── application-test.properties  # Configuração de teste
+```
+
+### Exemplo Prático: Do Requisito ao Teste
+
+#### 1. Requisito de Negócio
+> "Como administrador, quero validar que o email do estudante contenha '@senac' para garantir que apenas emails institucionais sejam aceitos."
+
+#### 2. Cenário Gherkin
+```gherkin
+Scenario: Register a student with invalid email
+  Given I have student details with email not containing "@senac"
+  When I submit the student registration form
+  Then the registration should fail
+  And the system should return an error message "Email inválido. O email deve conter '@senac'."
+```
+
+#### 3. Step Definition (Java)
+```java
+@Given("I have student details with email not containing {string}")
+public void iHaveStudentDetailsWithEmailNotContaining(String domain) {
+    alunoRequest = new Aluno("João Silva", "joao@gmail.com", 20);
+}
+```
+
+#### 4. Execução Automatizada
+- Cucumber executa o cenário
+- Steps são traduzidos em chamadas de API
+- Validações verificam comportamento esperado
+- Relatório mostra sucesso/falha em linguagem natural
+
+### Benefícios Observados
+
+- ✅ **Requisitos Claros**: Stakeholders entendem os cenários
+- ✅ **Testes Reutilizáveis**: Steps podem ser combinados em novos cenários
+- ✅ **Documentação Viva**: Features sempre atualizadas
+- ✅ **Descoberta Precoce**: Ambiguidades identificadas antes do desenvolvimento
+- ✅ **Manutenção Facilitada**: Mudanças na implementação não quebram cenários
+
+### Recursos de Aprendizado
+
+- **Cucumber Docs**: https://cucumber.io/docs/guides/
+- **Gherkin Reference**: https://cucumber.io/docs/gherkin/reference/
+- **BDD Fundamentals**: https://cucumber.io/docs/bdd/
+- **VCR Teaching Guide**: `vcr_teaching_guide.md`
+
+---
+
+## Histórico Anterior
+
 Data: 2025-10-13
 
 ## Resumo
