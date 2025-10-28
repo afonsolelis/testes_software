@@ -15,6 +15,8 @@ public class AlunoService {
     private AlunoRepository alunoRepository;
 
     public Aluno createAluno(Aluno aluno) {
+        validateNome(aluno.getNome());
+        validateIdade(aluno.getIdade());
         validateEmail(aluno.getEmail());
         return alunoRepository.save(aluno);
     }
@@ -35,6 +37,8 @@ public class AlunoService {
             throw new IllegalArgumentException("O novo e-mail deve ser diferente do e-mail atual.");
         }
 
+        validateNome(alunoDetails.getNome());
+        validateIdade(alunoDetails.getIdade());
         validateEmail(alunoDetails.getEmail());
 
         aluno.setNome(alunoDetails.getNome());
@@ -58,6 +62,18 @@ public class AlunoService {
         }
         if (!email.toLowerCase().contains("@senac")) {
             throw new IllegalArgumentException("Email inválido. O email deve conter '@senac'.");
+        }
+    }
+
+    private void validateNome(String nome) {
+        if (nome == null || nome.trim().isEmpty()) {
+            throw new IllegalArgumentException("Nome não pode ser vazio.");
+        }
+    }
+
+    private void validateIdade(int idade) {
+        if (idade < 0) {
+            throw new IllegalArgumentException("Idade inválida. A idade não pode ser negativa.");
         }
     }
 }

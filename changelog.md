@@ -34,6 +34,85 @@ Feature: Título da funcionalidade
     And [resultado adicional]
 ```
 
+##### Como criar a estrutura (passo a passo)
+
+1. Crie um arquivo `.feature` em `src/test/resources/features/`.
+   - Comece com `Feature:` e uma breve descrição (papel, objetivo, benefício).
+   - Opcional: use `Background:` para passos comuns a todos os cenários.
+2. Adicione cenários com `Scenario:` ou cenários parametrizados com `Scenario Outline:` + `Examples:`.
+   - Palavras‑chave: `Given`/`When`/`Then`/`And`/`But` (ou em PT‑BR: `Dado`/`Quando`/`Então`/`E`/`Mas`).
+   - Use tabelas (data tables) quando houver múltiplos campos de entrada.
+   - Use tags como `@smoke`, `@regression` para agrupar/filtrar execuções.
+3. Implemente os Steps em Java em `src/test/java/.../stepdefinitions/`.
+   - Faça o binding com anotações do Cucumber (`@Given`, `@When`, `@Then`).
+   - Compartilhe estado entre steps via campos da classe.
+   - Integre com Spring Boot Test, Testcontainers e clientes HTTP para exercitar o sistema.
+4. Crie um Runner JUnit em `src/test/java/.../cucumber/`.
+   - Configure `@CucumberOptions(features=..., glue=..., plugin=...)`.
+5. Garanta as dependências no `pom.xml` (`cucumber-java`, `cucumber-junit`, `cucumber-spring`) e o Surefire incluindo `*Runner.java`.
+6. Execute: `mvn test -Dtest=StudentRegistrationTestRunner` ou a feature específica com `-Dcucumber.features=...`.
+
+Exemplo mínimo de `.feature` com cenário parametrizado:
+
+```gherkin
+Feature: Registro de estudante
+
+  Scenario Outline: Validar email institucional
+    Given existe um estudante com email "<email>"
+    When eu submeto o registro
+    Then o resultado deve ser "<status>"
+
+    Examples:
+      | email              | status   |
+      | ana@senac.br       | sucesso  |
+      | ana@gmail.com      | falha    |
+```
+
+Exemplo mínimo de Step Definition (Java):
+
+```java
+@Given("existe um estudante com email {string}")
+public void existeUmEstudanteComEmail(String email) {
+    this.aluno = new Aluno("Ana", email, 20);
+}
+
+@When("eu submeto o registro")
+public void euSubmetoORegistro() {
+    response = restTemplate.postForEntity(baseUrl + "/alunos", aluno, String.class);
+}
+
+@Then("o resultado deve ser {string}")
+public void oResultadoDeveSer(String status) {
+    if (status.equals("sucesso")) assertTrue(response.getStatusCode().is2xxSuccessful());
+    else assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+}
+```
+
+#### Behavior‑Driven Development (BDD) e Behavior‑Driven Testing (BDT)
+
+- BDD: abordagem de desenvolvimento orientada a comportamento que promove colaboração entre negócio, QA e dev para descobrir, formalizar e automatizar requisitos usando uma linguagem onívoca (ex.: Gherkin).
+  - Ciclo: Descobrir (conversas + exemplos) → Formalizar (cenários Gherkin) → Automatizar (Cucumber executando os cenários).
+- BDT: prática de teste focada no comportamento especificado — é a automação/execução dos cenários definidos no BDD, garantindo que os critérios de aceitação sejam verificados continuamente.
+- Diferença prática: BDD é o processo colaborativo de especificação; BDT é a verificação automatizada dessa especificação.
+
+##### Diagrama do ciclo BDD (Mermaid)
+
+```mermaid
+flowchart TD
+    A[Descobrir]
+    A --- A1(Conversas entre negócio/QA/dev)
+    A --- A2(Especificação por exemplos)
+    A --> B[Formalizar]
+    B --- B1(Cenários em Gherkin)
+    B --> C[Automatizar]
+    C --- C1(Steps em Java)
+    C --- C2(Cucumber + Execução)
+    C --> D[Feedback]
+    D --- D1(Relatórios/Resultados)
+    D --> E[Iterar]
+    E --> A
+```
+
 #### Padrão AAA (Arrange-Act-Assert) em Testes
 
 O **padrão AAA** é uma estrutura universalmente reconhecida para organizar testes unitários e de integração, tornando-os mais legíveis e mantendáveis. Gherkin naturalmente implementa este padrão:
@@ -171,13 +250,27 @@ Then the registration should succeed or fail based on email  # Vago!
 **Adicionado**: `src/test/java/com/example/studentregistration/stepdefinitions/StudentRegistrationStepDefinitions.java`
 - Implementação dos steps do Gherkin em Java
 - Binding entre cenários Gherkin e código de teste
-- Integração com Spring Boot Test e MockMvc
+- Integração com Spring Boot Test, Testcontainers (PostgreSQL) e TestRestTemplate
 - Validações de resposta HTTP e mensagens de erro
 
 **Adicionado**: `src/test/java/com/example/studentregistration/cucumber/StudentRegistrationTestRunner.java`
 - Runner do Cucumber com JUnit
 - Configuração de features e glue packages
 - Geração de relatórios de teste
+
+##### Exemplo real do projeto (trecho do .feature)
+
+```gherkin
+Scenario: Successfully register a new student with valid institutional email
+  Given I have a student with the following details:
+    | name  | João Silva           |
+    | email | joao.silva@senac.br  |
+    | age   | 20                   |
+  And the email contains the required "@senac" domain
+  When I submit the student registration form to the API endpoint "/api/v1/alunos"
+  Then the registration should be successful with HTTP status code 201
+  And the system should return the registered student information
+```
 
 #### 2. Dependências Cucumber (pom.xml)
 
