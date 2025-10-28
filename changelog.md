@@ -34,6 +34,33 @@ Feature: Título da funcionalidade
     And [resultado adicional]
 ```
 
+#### Como o `.feature` vira código e onde ele fica
+
+- Os arquivos `.feature` ficam em `src/test/resources/features/`.
+- Cada passo do `.feature` vira um método Java anotado com `@Given`/`@When`/`@Then` em classes de Steps que ficam em `src/test/java/com/example/studentregistration/stepdefinitions/`.
+- O binding é feito pelo texto do passo usando Cucumber Expressions (ou regex) na anotação. Exemplo:
+
+```java
+@Given("existe um estudante com email {string}")
+public void existeUmEstudanteComEmail(String email) {
+    // preparar estado/dados para o cenário
+}
+```
+
+- O Runner JUnit do Cucumber informa onde estão as features e o pacote de glue (steps):
+
+```java
+@CucumberOptions(
+    features = "src/test/resources/features",
+    glue = "com.example.studentregistration.stepdefinitions",
+    plugin = {"pretty", "html:target/cucumber-reports"}
+)
+public class StudentRegistrationTestRunner {}
+```
+
+- Se um passo não tiver implementação, o Cucumber imprime no console um snippet sugerido. Copie esse snippet para uma classe em `stepdefinitions` e implemente o corpo do método.
+- Código de apoio (builders, clients, fixtures) pode ficar em `src/test/java/...` e código reutilizado em `src/main/java/...`.
+
 ##### Como criar a estrutura (passo a passo)
 
 1. Crie um arquivo `.feature` em `src/test/resources/features/`.
@@ -192,10 +219,10 @@ void testStudentRegistration() {
     // ARRANGE: Preparar
     Aluno aluno = new Aluno("João", "joao@senac.br", 20);
     repository.deleteAll();
-    
+
     // ACT: Agir
     ResponseEntity<Aluno> response = controller.createAluno(aluno);
-    
+
     // ASSERT: Verificar
     assertEquals(HttpStatus.CREATED, response.getStatusCode());
     assertTrue(repository.existsByEmail("joao@senac.br"));
@@ -483,7 +510,7 @@ Data: 2025-10-13
 ### Dependências (pom.xml)
 - Adicionadas dependências do Testcontainers:
   - `org.testcontainers:junit-jupiter` (scope: test)
-  - `org.testcontainers:postgresql` (scope: test) 
+  - `org.testcontainers:postgresql` (scope: test)
   - `org.springframework.boot:spring-boot-testcontainers` (scope: test)
 
 ### Testes de Integração
